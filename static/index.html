@@ -1,0 +1,22 @@
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+		<title>Chat Server</title>
+		<style>
+			#entry {
+				width: 100%;
+			}
+
+			#output {
+				width: 100%;
+				height: 95%;
+			}
+		</style>
+		<script language="javascript" type="text/javascript" src="chat.js"></script>
+	</head>
+	<body onload="return chat.initPage();">
+		<textarea id="output" readonly="true"></textarea>
+		<br />
+		<input type="text" id="entry" onkeypress="return chat.onEntryKeyPress(this, event);" />
+	</body>
+</html>

@@ -13,9 +13,9 @@ object HelloWorldServer extends IOApp {
 }
 
 object ServerStream {
-  def helloWorldRoutes[F[_]: Effect]: HttpRoutes[F] = new HelloWorldRoutes[F].routes
+  def helloWorldRoutes[F[_]: Effect: ContextShift]: HttpRoutes[F] = new HelloWorldRoutes[F].routes
 
-  def stream[F[_]: ConcurrentEffect: Timer]: fs2.Stream[F, ExitCode]=
+  def stream[F[_]: ConcurrentEffect: Timer: ContextShift]: fs2.Stream[F, ExitCode]=
     BlazeServerBuilder[F]
       .bindHttp(8080, "0.0.0.0")
       .withHttpApp(Router(
