@@ -1,16 +1,17 @@
 package com.martinsnyder.chatserver
 
 case class ChatState(userRooms: Map[String, String], roomMembers: Map[String, Set[String]]) {
-  def process(user: String, msg: InputMessage): (ChatState, Seq[OutputMessage]) = msg match {
-    case Chat(text) => userRooms.get(user) match {
+  def process(msg: InputMessage): (ChatState, Seq[OutputMessage]) = msg match {
+    case Chat(user, text) => userRooms.get(user) match {
       case Some(room) =>
+        System.out.println("sending chat message")
         (this, sendToRoom(room, s"$user: $text"))
 
       case None =>
         (this, Seq(SendToUser(user, "You are not currently in a room")))
     }
 
-    case EnterRoom(toRoom) =>
+    case EnterRoom(user, toRoom) =>
       val nextState = removeFromCurrentRoom(user).addToRoom(user, toRoom)
       val leaveMessage = userRooms
         .get(user)
@@ -20,7 +21,7 @@ case class ChatState(userRooms: Map[String, String], roomMembers: Map[String, Se
 
       (nextState, leaveMessage ++ enterMessage)
 
-    case InvalidInput(text) =>
+    case InvalidInput(user, text) =>
       (this, Seq(SendToUser(user, s"Invalid input: $text")))
   }
 

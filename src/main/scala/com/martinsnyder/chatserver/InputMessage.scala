@@ -1,17 +1,19 @@
 package com.martinsnyder.chatserver
 
-sealed trait InputMessage
-case class Chat(text: String) extends InputMessage
-case class EnterRoom(room: String) extends InputMessage
-case class InvalidInput(text: String) extends InputMessage
+sealed trait InputMessage {
+  val user: String
+}
+case class Chat(user: String, text: String) extends InputMessage
+case class EnterRoom(user: String, room: String) extends InputMessage
+case class InvalidInput(user: String, text: String) extends InputMessage
 
 object InputMessage {
-  def parse(text: String): InputMessage =
+  def parse(user: String, text: String): InputMessage =
     splitFirstTwoWords(text) match {
-      case ("/room", "", "") => EnterRoom("default")
-      case ("/room", room, "") => EnterRoom(room.toLowerCase)
-      case ("/room", _, _) => InvalidInput("/room takes a single, optional argument")
-      case _ => Chat(text)
+      case ("/room", "", "") => EnterRoom(user, "default")
+      case ("/room", room, "") => EnterRoom(user, room.toLowerCase)
+      case ("/room", _, _) => InvalidInput(user, "/room takes a single, optional argument")
+      case _ => Chat(user, text)
     }
 
   private def splitFirstWord(text: String): (String, String) = {
