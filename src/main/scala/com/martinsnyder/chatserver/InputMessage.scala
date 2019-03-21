@@ -1,16 +1,15 @@
 package com.martinsnyder.chatserver
 
 sealed trait InputMessage
-case class Chat(message: String) extends InputMessage
-case object EnterDefaultRoom extends InputMessage
+case class Chat(text: String) extends InputMessage
 case class EnterRoom(room: String) extends InputMessage
-case class InvalidInput(msg: String) extends InputMessage
+case class InvalidInput(text: String) extends InputMessage
 
 object InputMessage {
   def parse(text: String): InputMessage =
     splitFirstTwoWords(text) match {
-      case ("/room", "", "") => EnterDefaultRoom
-      case ("/room", room, "") => EnterRoom(room)
+      case ("/room", "", "") => EnterRoom("default")
+      case ("/room", room, "") => EnterRoom(room.toLowerCase)
       case ("/room", _, _) => InvalidInput("/room takes a single, optional argument")
       case _ => Chat(text)
     }
