@@ -13,7 +13,6 @@ import org.http4s.websocket.WebSocketFrame
 import org.http4s.websocket.WebSocketFrame.Text
 import scala.concurrent.ExecutionContext.global
 
-
 class HelloWorldRoutes[F[_]: Sync: ContextShift](queue: Queue[F, InputMessage], topic: Topic[F, OutputMessage]) extends Http4sDsl[F] {
   val routes: HttpRoutes[F] =
     HttpRoutes.of[F] {
@@ -27,11 +26,18 @@ class HelloWorldRoutes[F[_]: Sync: ContextShift](queue: Queue[F, InputMessage], 
             .filter(_.forUser(userName))
             .map(msg => Text(msg.toString))
 
+        def processInput(wsfStream: Stream[F, WebSocketFrame]): Stream[F, Unit] = {
+          val entryStream: Stream[F, InputMessage] = Stream.emits(Seq(EnterRoom(userName, InputMessage.DefaultRoomName)))
+          val parsedWebSocketInput: Stream[F, InputMessage] =
+            wsfStream
+              .map({
+                case Text(text, _) => InputMessage.parse(userName, text)
+                case _ => Disconnect(userName)
+              })
 
-        val fromClient: Pipe[F, WebSocketFrame, Unit] =
-          _.map({case Text(text, _) => InputMessage.parse(userName, text) })
-           .through(queue.enqueue)
+          (entryStream ++ parsedWebSocketInput).through(queue.enqueue)
+        }
 
-        WebSocketBuilder[F].build(toClient, fromClient)
+      WebSocketBuilder[F].build(toClient, processInput)
     }
 }

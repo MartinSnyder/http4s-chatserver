@@ -11,14 +11,13 @@ case class ChatState(userRooms: Map[String, String], roomMembers: Map[String, Se
     }
 
     case EnterRoom(user, toRoom) =>
-      val nextState = removeFromCurrentRoom(user).addToRoom(user, toRoom)
-      val enterMessage = nextState.sendToRoom(toRoom, s"$user has joined $toRoom")
-      val leaveMessage = userRooms
-        .get(user)
-        .toSeq
-        .flatMap(fromRoom => sendToRoom(fromRoom, s"$user has left $fromRoom"))
+      val (intermediateState, leaveMessages) = removeFromCurrentRoom(user)
+      val (finalState, enterMessages) = intermediateState.addToRoom(user, toRoom)
 
-      (nextState, leaveMessage ++ enterMessage)
+      (finalState, leaveMessages ++ enterMessages)
+
+    case Disconnect(user) =>
+      removeFromCurrentRoom(user)
 
     case InvalidInput(user, text) =>
       (this, Seq(SendToUser(user, s"Invalid input: $text")))
@@ -31,18 +30,22 @@ case class ChatState(userRooms: Map[String, String], roomMembers: Map[String, Se
       .toSeq
   }
 
-  private def removeFromCurrentRoom(user: String): ChatState = userRooms.get(user) match {
+  private def removeFromCurrentRoom(user: String): (ChatState, Seq[OutputMessage]) = userRooms.get(user) match {
     case Some(room) =>
       val nextMembers = roomMembers.getOrElse(room, Set()) - user
+      val nextState = ChatState(userRooms - user, roomMembers + (room -> nextMembers))
 
-      ChatState(userRooms - user, roomMembers + (room -> nextMembers))
+      // Send to "previous" room population to include the leaving user
+      (nextState, sendToRoom(room, s"$user has left $room"))
     case None =>
-      this
+      (this, Nil)
   }
 
-  private def addToRoom(user: String, room: String): ChatState = {
+  private def addToRoom(user: String, room: String): (ChatState, Seq[OutputMessage]) = {
     val nextMembers = roomMembers.getOrElse(room, Set()) + user
+    val nextState = ChatState(userRooms + (user -> room), roomMembers + (room -> nextMembers))
 
-    ChatState(userRooms + (user -> room), roomMembers + (room -> nextMembers))
+    // Send to "next" room population to include the joining user
+    (nextState, nextState.sendToRoom(room, s"$user has joined $room"))
   }
 }
