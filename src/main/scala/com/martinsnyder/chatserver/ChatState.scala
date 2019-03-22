@@ -4,7 +4,6 @@ case class ChatState(userRooms: Map[String, String], roomMembers: Map[String, Se
   def process(msg: InputMessage): (ChatState, Seq[OutputMessage]) = msg match {
     case Chat(user, text) => userRooms.get(user) match {
       case Some(room) =>
-        System.out.println("sending chat message")
         (this, sendToRoom(room, s"$user: $text"))
 
       case None =>
@@ -13,11 +12,11 @@ case class ChatState(userRooms: Map[String, String], roomMembers: Map[String, Se
 
     case EnterRoom(user, toRoom) =>
       val nextState = removeFromCurrentRoom(user).addToRoom(user, toRoom)
+      val enterMessage = nextState.sendToRoom(toRoom, s"$user has joined $toRoom")
       val leaveMessage = userRooms
         .get(user)
         .toSeq
         .flatMap(fromRoom => sendToRoom(fromRoom, s"$user has left $fromRoom"))
-      val enterMessage = sendToRoom(toRoom, s"$user has joined $toRoom")
 
       (nextState, leaveMessage ++ enterMessage)
 
@@ -26,9 +25,8 @@ case class ChatState(userRooms: Map[String, String], roomMembers: Map[String, Se
   }
 
   private def sendToRoom(room: String, text: String): Seq[OutputMessage] = {
-    userRooms
+    roomMembers
       .get(room)
-      .flatMap(roomMembers.get)
       .map(SendToUsers(_, text))
       .toSeq
   }
