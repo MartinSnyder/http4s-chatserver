@@ -16,7 +16,7 @@ import scala.concurrent.ExecutionContext.global
 /*
  * Processes single HTTP requests
  */
-class HelloWorldRoutes[F[_]: Sync: ContextShift](queue: Queue[F, InputMessage], topic: Topic[F, OutputMessage]) extends Http4sDsl[F] {
+class ChatRoutes[F[_]: Sync: ContextShift](queue: Queue[F, InputMessage], topic: Topic[F, OutputMessage]) extends Http4sDsl[F] {
   val routes: HttpRoutes[F] =
     HttpRoutes.of[F] {
       // Static resources

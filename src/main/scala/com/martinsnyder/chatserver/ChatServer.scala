@@ -41,7 +41,7 @@ object HelloWorldServer extends IOApp {
 
 object ServerStream {
   def helloWorldRoutes[F[_]: Effect: ContextShift](queue: Queue[F, InputMessage], topic: Topic[F, OutputMessage]): HttpRoutes[F] =
-    new HelloWorldRoutes[F](queue, topic).routes
+    new ChatRoutes[F](queue, topic).routes
 
   // Builds a stream for HTTP events processed by our router
   def stream[F[_]: ConcurrentEffect: Timer: ContextShift](queue: Queue[F, InputMessage], topic: Topic[F, OutputMessage]): fs2.Stream[F, ExitCode]=
