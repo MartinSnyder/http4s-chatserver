@@ -1,5 +1,10 @@
 package com.martinsnyder.chatserver
 
+object ChatState {
+  // Default constructor
+  def apply(): ChatState = ChatState(Map.empty, Map.empty)
+}
+
 case class ChatState(userRooms: Map[String, String], roomMembers: Map[String, Set[String]]) {
   def process(msg: InputMessage): (ChatState, Seq[OutputMessage]) = msg match {
     case Chat(user, text) => userRooms.get(user) match {

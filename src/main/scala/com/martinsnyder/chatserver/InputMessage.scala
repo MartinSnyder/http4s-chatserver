@@ -1,8 +1,12 @@
 package com.martinsnyder.chatserver
 
+/*
+ * Trait for any input operation that could come from the user
+ */
 sealed trait InputMessage {
   val user: String
 }
+
 case class Chat(user: String, text: String) extends InputMessage
 case class EnterRoom(user: String, room: String) extends InputMessage
 case class Disconnect(user: String) extends InputMessage
@@ -11,6 +15,7 @@ case class InvalidInput(user: String, text: String) extends InputMessage
 object InputMessage {
   val DefaultRoomName = "default"
 
+  // Parses a string into a command
   def parse(user: String, text: String): InputMessage =
     splitFirstTwoWords(text) match {
       case ("/room", "", "") => EnterRoom(user, DefaultRoomName)
