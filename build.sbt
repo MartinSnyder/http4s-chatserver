@@ -1,3 +1,5 @@
+import com.typesafe.sbt.SbtNativePackager.autoImport.NativePackagerHelper._
+
 val Http4sVersion = "0.20.0-M7"
 val Specs2Version = "4.1.0"
 val LogbackVersion = "1.2.3"
@@ -6,7 +8,7 @@ lazy val root = (project in file("."))
   .settings(
     organization := "com.martinsnyder",
     name := "chatserver",
-    version := "0.0.1-SNAPSHOT",
+    version := "0.20.0-M7",
     scalaVersion := "2.12.8",
     libraryDependencies ++= Seq(
       "org.http4s"      %% "http4s-blaze-server" % Http4sVersion,
@@ -16,8 +18,10 @@ lazy val root = (project in file("."))
       "ch.qos.logback"  %  "logback-classic"     % LogbackVersion
     ),
     addCompilerPlugin("org.spire-math" %% "kind-projector"     % "0.9.6"),
-    addCompilerPlugin("com.olegpy"     %% "better-monadic-for" % "0.2.4")
+    addCompilerPlugin("com.olegpy"     %% "better-monadic-for" % "0.2.4"),
+    mappings in Universal ++= directory(baseDirectory.value / "static")
   )
+  .enablePlugins(JavaAppPackaging)
 
 scalacOptions ++= Seq(
   "-deprecation",
