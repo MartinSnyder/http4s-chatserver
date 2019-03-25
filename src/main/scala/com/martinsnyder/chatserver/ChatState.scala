@@ -21,6 +21,30 @@ case class ChatState(userRooms: Map[String, String], roomMembers: Map[String, Se
 
       (finalState, leaveMessages ++ enterMessages)
 
+    case ListRooms(user) =>
+      val roomList = roomMembers
+        .keys
+        .toList
+        .sorted
+        .mkString("Rooms:\n\t", "\n\t", "")
+
+      (this, Seq(SendToUser(user, roomList)))
+
+    case ListMembers(user) =>
+      val memberList = userRooms.get(user) match {
+        case Some(room) =>
+          roomMembers
+            .getOrElse(room, Set())
+            .toList
+            .sorted
+            .mkString("Room Members:\n\t", "\n\t", "")
+
+        case None =>
+          "You are not currently in a room"
+      }
+
+      (this, Seq(SendToUser(user, memberList)))
+
     case Disconnect(user) =>
       removeFromCurrentRoom(user)
 

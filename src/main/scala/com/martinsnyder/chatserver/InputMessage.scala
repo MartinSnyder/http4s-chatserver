@@ -9,6 +9,8 @@ sealed trait InputMessage {
 
 case class Chat(user: String, text: String) extends InputMessage
 case class EnterRoom(user: String, room: String) extends InputMessage
+case class ListRooms(user: String) extends InputMessage
+case class ListMembers(user: String) extends InputMessage
 case class Disconnect(user: String) extends InputMessage
 case class InvalidInput(user: String, text: String) extends InputMessage
 
@@ -21,6 +23,8 @@ object InputMessage {
       case ("/room", "", "") => EnterRoom(user, DefaultRoomName)
       case ("/room", room, "") => EnterRoom(user, room.toLowerCase)
       case ("/room", _, _) => InvalidInput(user, "/room takes a single, optional argument")
+      case ("/rooms", _, _) => ListRooms(user)
+      case ("/members", _, _) => ListMembers(user)
       case _ => Chat(user, text)
     }
 
