@@ -35,6 +35,7 @@ object InputMessage {
       case ("/room", _, _) => InvalidInput(user, "/room takes a single, optional argument")
       case ("/rooms", _, _) => ListRooms(user)
       case ("/members", _, _) => ListMembers(user)
+      case (cmd, _, _) if cmd.startsWith("/") => InvalidInput(user, s"unknown command - $cmd")
       case _ => Chat(user, text)
     }
 
