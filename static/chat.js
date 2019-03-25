@@ -14,7 +14,7 @@ var chat = {}; // Namespace
 	chat.initPage = function () {
 		document.getElementById(chat.ENTRY_ID).focus();
 
-		chat.writeOutput('Welcome to Chat Server!');
+		chat.writeOutput('Initializing ChatServer client.');
 		chat.writeOutput('Enter your username:');
 	};
 

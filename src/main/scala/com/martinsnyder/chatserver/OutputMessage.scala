@@ -9,14 +9,19 @@ trait OutputMessage {
   override def toString: String
 }
 
-case class SendToUser(user: String, text: String) extends OutputMessage {
+case class WelcomeUser(user: String) extends OutputMessage {
   override def forUser(targetUser: String): Boolean = targetUser == user
-  override def toString: String = text
+  override def toString = s"Welcome to ChatServer version ${BuildInfo.version} - an example for http4s"
+}
+
+case class SendToUser(user: String, text: String) extends OutputMessage {
+  override def forUser(targetUser: String) = targetUser == user
+  override def toString = text
 }
 
 case class SendToUsers(users: Set[String], text: String) extends OutputMessage {
-  override def forUser(targetUser: String): Boolean = users.contains(targetUser)
-  override def toString: String = text
+  override def forUser(targetUser: String) = users.contains(targetUser)
+  override def toString = text
 }
 
 case object KeepAlive extends OutputMessage {
