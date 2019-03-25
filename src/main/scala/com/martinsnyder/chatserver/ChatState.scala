@@ -25,6 +25,9 @@ case class ChatState(userRooms: Map[String, String], roomMembers: Map[String, Se
 
         (finalState, Seq(WelcomeUser(user)) ++ enterMessages)
 
+      case Some(currentRoom) if currentRoom == toRoom =>
+        (this, Seq(SendToUser(user, "You are already in that room!")))
+
       case Some(_) =>
         // Already in - move from one room to another
         val (intermediateState, leaveMessages) = removeFromCurrentRoom(user)
