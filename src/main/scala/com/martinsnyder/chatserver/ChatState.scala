@@ -77,7 +77,10 @@ case class ChatState(userRooms: Map[String, String], roomMembers: Map[String, Se
   private def removeFromCurrentRoom(user: String): (ChatState, Seq[OutputMessage]) = userRooms.get(user) match {
     case Some(room) =>
       val nextMembers = roomMembers.getOrElse(room, Set()) - user
-      val nextState = ChatState(userRooms - user, roomMembers + (room -> nextMembers))
+      val nextState = if (nextMembers.isEmpty)
+        ChatState(userRooms - user, roomMembers - room)
+      else
+        ChatState(userRooms - user, roomMembers + (room -> nextMembers))
 
       // Send to "previous" room population to include the leaving user
       (nextState, sendToRoom(room, s"$user has left $room"))
