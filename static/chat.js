@@ -45,7 +45,7 @@ var chat = {}; // Namespace
 	chat.onEntryKeyPress = function (oCtl, oEvent) {
 		if (chat.isEnterKeyPress(oEvent)) {
 			// Capture the current text as a command
-			var sEntry = oCtl.value;
+			var sEntry = oCtl.value.trim();
 
 			// Reset the text entry for the next command
 			oCtl.value = '';
@@ -54,13 +54,14 @@ var chat = {}; // Namespace
 				// Set the username first if we still need one
 				if (sEntry.length > 0) {
 					chat.user = sEntry;
+                    chat.connect();
 				}
-
-                chat.connect();
 			}
 			else {
 				// Process the entry
-				chat.ws.send(sEntry);
+				if (sEntry !== '') {
+    				chat.ws.send(sEntry);
+                }
 			}
 		}
 	};
