@@ -1,8 +1,12 @@
 # http4s-chatserver
-Example chat server implemented using WebSockets on http4s 0.20
+A chat server implemented using WebSockets and Scala/http4s. Note that the versioning of this project mimics http4s itself, so the tags on the project indicate what versions this example has been built against. It was initially developed against 0.20.0-M6.
 
-This project is intended to be a practical example of how to work with WebSockets in http4s.
-Specifically, it implements a stateful server that all WebSocket clients interact with.
+A working demo of this project is available here: [https://martinsnyder.net/chat](https://martinsnyder.net/chat).
+
+This project is a practical example of:
+* How to work with WebSockets in http4s
+* Implementing application state using fs2 streams
+* The publish/subscribe pattern
 
 ## Messages are processed as follows:
 ### In ChatRoutes (processInput)
@@ -27,8 +31,9 @@ need to sequence our messages in order to conduct the state transformations on C
 
 A more complicated implementation would queue on a per-room basis. That would require per-room
 queues though, and would distract from what this example is trying to demonstrate.
+
 ### Functional enhancements
-Functional enhancements to this chat server can be implemented by modifying InputMessage,
+Functional improvements to this application can be implemented by modifying InputMessage,
 OutputMessage and ChatState. These three classes are vanilla Scala and have no fs2 or http4s
 dependencies. Of note, that means that 100% of the functionality can be trivially unit-tested
 or evaluated in the REPL by a novice Scala programmer.
