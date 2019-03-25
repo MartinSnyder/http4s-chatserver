@@ -18,3 +18,8 @@ case class SendToUsers(users: Set[String], text: String) extends OutputMessage {
   override def forUser(targetUser: String): Boolean = users.contains(targetUser)
   override def toString: String = text
 }
+
+case object KeepAlive extends OutputMessage {
+  override def forUser(targetUser: String) = true
+  override def toString = ""
+}

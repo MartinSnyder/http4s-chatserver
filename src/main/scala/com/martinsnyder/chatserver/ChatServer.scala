@@ -27,8 +27,13 @@ object HelloWorldServer extends IOApp {
       queue <- Queue.unbounded[IO, InputMessage];
       topic <- Topic[IO, OutputMessage](SendToUsers(Set.empty, ""));
       exitCode <- {
+        import scala.concurrent.duration._
+
         // Stream for HTTP requests
         val httpStream = ServerStream.stream[IO](httpPort, queue, topic)
+
+        // Stream to keep alive idle WebSockets
+        val keepAlive = Stream.awakeEvery[IO](30.seconds).map(_ => KeepAlive).through(topic.publish)
 
         // Stream to process items from the queue and publish the results to the topic
         // Note mapAccumulate below which performs our state manipulation
@@ -41,7 +46,7 @@ object HelloWorldServer extends IOApp {
             .through(topic.publish)
 
         // fs2 Streams must be "pulled" to process messages. Drain will perpetually pull our top-level streams
-        httpStream.concurrently(processingStream).compile.drain.as(ExitCode.Success)
+        httpStream.concurrently(keepAlive).concurrently(processingStream).compile.drain.as(ExitCode.Success)
       }
 
     ) yield exitCode

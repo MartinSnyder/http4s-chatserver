@@ -33,7 +33,13 @@ var chat = {}; // Namespace
         };
 
         chat.ws.onmessage = function(evt) {
-            chat.writeOutput(evt.data);
+            // KeepAlive messages have no content
+            if (evt.data !== '') {
+                chat.writeOutput(evt.data);
+            }
+            else {
+                console.debug('KeepAlive received');
+            }
         };
 
         chat.ws.onerror = function(evt) {
