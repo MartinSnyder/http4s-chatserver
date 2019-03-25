@@ -18,11 +18,20 @@ case class ChatState(userRooms: Map[String, String], roomMembers: Map[String, Se
         (this, Seq(SendToUser(user, "You are not currently in a room")))
     }
 
-    case EnterRoom(user, toRoom) =>
-      val (intermediateState, leaveMessages) = removeFromCurrentRoom(user)
-      val (finalState, enterMessages) = intermediateState.addToRoom(user, toRoom)
+    case EnterRoom(user, toRoom) => userRooms.get(user) match {
+      case None =>
+        // First time in - welcome and enter
+        val (finalState, enterMessages) = addToRoom(user, toRoom)
 
-      (finalState, leaveMessages ++ enterMessages)
+        (finalState, Seq(WelcomeUser(user)) ++ enterMessages)
+
+      case Some(_) =>
+        // Already in - move from one room to another
+        val (intermediateState, leaveMessages) = removeFromCurrentRoom(user)
+        val (finalState, enterMessages) = intermediateState.addToRoom(user, toRoom)
+
+        (finalState, leaveMessages ++ enterMessages)
+    }
 
     case ListRooms(user) =>
       val roomList = roomMembers

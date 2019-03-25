@@ -14,14 +14,16 @@ lazy val root = (project in file("."))
       "org.http4s"      %% "http4s-blaze-server" % Http4sVersion,
       "org.http4s"      %% "http4s-circe"        % Http4sVersion,
       "org.http4s"      %% "http4s-dsl"          % Http4sVersion,
-      "org.specs2"     %% "specs2-core"          % Specs2Version % "test",
       "ch.qos.logback"  %  "logback-classic"     % LogbackVersion
     ),
     addCompilerPlugin("org.spire-math" %% "kind-projector"     % "0.9.6"),
     addCompilerPlugin("com.olegpy"     %% "better-monadic-for" % "0.2.4"),
-    mappings in Universal ++= directory(baseDirectory.value / "static")
+    mappings in Universal ++= directory(baseDirectory.value / "static"),
+    buildInfoKeys := Seq[BuildInfoKey](name, version),
+    buildInfoPackage := "com.martinsnyder.chatserver"
   )
   .enablePlugins(JavaAppPackaging)
+  .enablePlugins(BuildInfoPlugin)
 
 scalacOptions ++= Seq(
   "-deprecation",
