@@ -7,6 +7,9 @@ object ChatState {
 
 case class ChatState(userRooms: Map[String, String], roomMembers: Map[String, Set[String]]) {
   def process(msg: InputMessage): (ChatState, Seq[OutputMessage]) = msg match {
+    case Help(user) =>
+      (this, Seq(SendToUser(user, InputMessage.HelpText)))
+
     case Chat(user, text) => userRooms.get(user) match {
       case Some(room) =>
         (this, sendToRoom(room, s"$user: $text"))

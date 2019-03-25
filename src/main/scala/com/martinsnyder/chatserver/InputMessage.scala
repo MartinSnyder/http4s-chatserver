@@ -7,6 +7,7 @@ sealed trait InputMessage {
   val user: String
 }
 
+case class Help(user: String) extends InputMessage
 case class Chat(user: String, text: String) extends InputMessage
 case class EnterRoom(user: String, room: String) extends InputMessage
 case class ListRooms(user: String) extends InputMessage
@@ -16,10 +17,19 @@ case class InvalidInput(user: String, text: String) extends InputMessage
 
 object InputMessage {
   val DefaultRoomName = "default"
+  val HelpText =
+    """Commands:
+      |  /help             - Show this text
+      |  /room             - Change to default/entry room
+      |  /room <room name> - Change to specified room
+      |  /rooms            - List all rooms
+      |  /members          - List members in current room
+    """.stripMargin
 
   // Parses a string into a command
   def parse(user: String, text: String): InputMessage =
     splitFirstTwoWords(text) match {
+      case ("/help", _, _) => Help(user)
       case ("/room", "", "") => EnterRoom(user, DefaultRoomName)
       case ("/room", room, "") => EnterRoom(user, room.toLowerCase)
       case ("/room", _, _) => InvalidInput(user, "/room takes a single, optional argument")
