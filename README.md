@@ -35,5 +35,5 @@ queues though, and would distract from what this example is trying to demonstrat
 ### Functional enhancements
 Functional improvements to this application can be implemented by modifying InputMessage,
 OutputMessage and ChatState. These three classes are vanilla Scala and have no fs2 or http4s
-dependencies. Of note, that means that 100% of the functionality can be trivially unit-tested
+dependencies. That means that 100% of the functionality can be trivially unit-tested
 or evaluated in the REPL by a novice Scala programmer.
