@@ -3,7 +3,7 @@ package com.martinsnyder.chatserver
 import java.io.File
 
 import cats.effect.{ContextShift, Sync}
-import fs2.Stream
+import fs2.{Pipe, Stream}
 import fs2.concurrent.{Queue, Topic}
 import org.http4s.{HttpRoutes, StaticFile}
 import org.http4s.dsl.Http4sDsl
@@ -31,7 +31,7 @@ class ChatRoutes[F[_]: Sync: ContextShift](queue: Queue[F, InputMessage], topic:
             .filter(_.forUser(userName))
             .map(msg => Text(msg.toString))
 
-        // Pipe that takes client messages from a WebSocket and routes them to our Queue
+        // Function that converts a stream of one type to another. Effectively an external "map" function
         def processInput(wsfStream: Stream[F, WebSocketFrame]): Stream[F, Unit] = {
           // Stream of initialization events for a user
           val entryStream: Stream[F, InputMessage] = Stream.emits(Seq(EnterRoom(userName, InputMessage.DefaultRoomName)))
@@ -39,18 +39,22 @@ class ChatRoutes[F[_]: Sync: ContextShift](queue: Queue[F, InputMessage], topic:
           // Stream that transforms between raw text from the client and parsed InputMessage objects
           val parsedWebSocketInput: Stream[F, InputMessage] =
             wsfStream
-              .map({
+              .collect({
                 case Text(text, _) => InputMessage.parse(userName, text)
-                case Close(_) => Disconnect(userName)
 
-                // Intentionally let other message types throw a MatchError
-                // these types are not expected to ever happen
+                // Convert the terminal WebSocket event to a User disconnect message
+                case Close(_) => Disconnect(userName)
               })
 
+          // Create a stream that has all of the user input sandwiched between the entry and disconnect messages
           (entryStream ++ parsedWebSocketInput).through(queue.enqueue)
         }
 
+        // WebSocketBuilder needs a "pipe" which is a type alias for a stream transformation function like processInput above
+        // This variable is not necessary to compile, but is included to clarify the exact type of Pipe.
+        val inputPipe: Pipe[F, WebSocketFrame, Unit] = processInput
+
         // Build the WebSocket handler
-        WebSocketBuilder[F].build(toClient, processInput)
+        WebSocketBuilder[F].build(toClient, inputPipe)
     }
 }
