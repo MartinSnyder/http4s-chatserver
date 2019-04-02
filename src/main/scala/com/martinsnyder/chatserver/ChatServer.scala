@@ -46,7 +46,11 @@ object HelloWorldServer extends IOApp {
             .through(topic.publish)
 
         // fs2 Streams must be "pulled" to process messages. Drain will perpetually pull our top-level streams
-        httpStream.concurrently(keepAlive).concurrently(processingStream).compile.drain.as(ExitCode.Success)
+        Stream(httpStream, keepAlive, processingStream)
+          .parJoinUnbounded
+          .compile
+          .drain
+          .as(ExitCode.Success)
       }
 
     ) yield exitCode
