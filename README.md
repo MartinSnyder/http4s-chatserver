@@ -1,7 +1,7 @@
 # http4s-chatserver
 A chat server implemented using WebSockets and Scala/http4s. Note that the versioning of this project mimics http4s itself, so the tags on the project indicate what versions this example has been built against. It was initially developed against 0.20.0-M6.
 
-A working demo of this project is available here: [https://martinsnyder.net/chat](https://martinsnyder.net/chat).
+A working demo of this project is available here: [https://martinsnyder.net/projects/chat.html](https://martinsnyder.net/projects/chat.html).
 
 This project is a practical example of:
 * How to work with WebSockets in http4s
