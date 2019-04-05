@@ -1,6 +1,6 @@
 import com.typesafe.sbt.SbtNativePackager.autoImport.NativePackagerHelper._
 
-val Http4sVersion = "0.20.0-M7"
+val Http4sVersion = "0.20.0-RC1"
 val Specs2Version = "4.1.0"
 val LogbackVersion = "1.2.3"
 
@@ -8,7 +8,7 @@ lazy val root = (project in file("."))
   .settings(
     organization := "com.martinsnyder",
     name := "chatserver",
-    version := "0.20.0-M7",
+    version := Http4sVersion,
     scalaVersion := "2.12.8",
     libraryDependencies ++= Seq(
       "org.http4s"      %% "http4s-blaze-server" % Http4sVersion,
