@@ -1,5 +1,5 @@
 # http4s-chatserver [![Build Status](https://travis-ci.org/MartinSnyder/http4s-chatserver.svg?branch=master)](https://travis-ci.org/MartinSnyder/http4s-chatserver)
-A chat server implemented using WebSockets and Scala/http4s. Note that the versioning of this project mimics http4s itself, so the tags on the project indicate what versions this example has been built against. It was initially developed against 0.20.0-M6.
+A chat server implemented using [WebSockets][wikipedia] and [http4s][http4s]. Note that the version of this project mimics http4s itself, so the tags on the project indicate what versions this example has been built against. It was initially developed against 0.20.0-M6.
 
 A working demo of this project is available here: [https://martinsnyder.net/projects/chat.html](https://martinsnyder.net/projects/chat.html).
 
@@ -24,16 +24,36 @@ This project is a practical example of:
 
 ## Notes
 ### Concurrency in fs2
-This implementation relies heavily on the concurrency objects Queue and Topic. The biggest
-weakness of what I've done here is that *all* traffic is routed through a single queue. This
-neutralizes many of the benefits of http4s. Queueing is necessary in this case because we
-need to sequence our messages in order to conduct the state transformations on ChatState.
+This implementation relies heavily on the concurrency objects Queue and Topic. They are
+used both to move messages between streams and also to control the flow of messages in general.
 
 A more complicated implementation would queue on a per-room basis. That would require per-room
 queues though, and would distract from what this example is trying to demonstrate.
+
+### Limitations
+The biggest weakness of what I've done here is that *all* traffic is routed through a single queue.
+This neutralizes many of the benefits of http4s. Queueing is necessary in this case because we
+need to sequence our messages in order to conduct the state transformations on ChatState.
+
+Another weakness is that the current state is embedded entirely within "processingStream." This
+prevents other services from accessing that state. For instance, it would be useful to
+implement a monitoring RESTful endpoint that reported on usage metrics, but that is not
+possible without refactoring the state to be more accessible. See the "Ref" link in
+[Further reading](#further-reading) for the technique to address that.
 
 ### Functional enhancements
 Functional improvements to this application can be implemented by modifying InputMessage,
 OutputMessage and ChatState. These three classes are vanilla Scala and have no fs2 or http4s
 dependencies. That means that 100% of the functionality can be trivially unit-tested
 or evaluated in the REPL by a novice Scala programmer.
+
+### Further reading
+* [fs2 Documentation - Concurrency Primitives][fs2-concurrency]
+* [http4s WebSocket Example][blaze-ws-example]
+* [Ref objects in Cats Effect][cats-effect-ref]
+
+[wikipedia]: https://en.wikipedia.org/wiki/WebSocket
+[http4s]: https://http4s.org/
+[fs2-concurrency]: https://fs2.io/concurrency-primitives.html
+[blaze-ws-example]: https://github.com/http4s/http4s/blob/master/examples/blaze/src/main/scala/com/example/http4s/blaze/BlazeWebSocketExample.scala
+[cats-effect-ref]: https://typelevel.org/cats-effect/concurrency/ref.html
