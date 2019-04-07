@@ -1,4 +1,4 @@
-# http4s-chatserver
+# http4s-chatserver [![Build Status](https://travis-ci.org/MartinSnyder/http4s-chatserver.svg?branch=master)](https://travis-ci.org/MartinSnyder/http4s-chatserver)
 A chat server implemented using WebSockets and Scala/http4s. Note that the versioning of this project mimics http4s itself, so the tags on the project indicate what versions this example has been built against. It was initially developed against 0.20.0-M6.
 
 A working demo of this project is available here: [https://martinsnyder.net/projects/chat.html](https://martinsnyder.net/projects/chat.html).
