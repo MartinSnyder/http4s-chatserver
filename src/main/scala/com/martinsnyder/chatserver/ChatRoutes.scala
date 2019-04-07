@@ -2,27 +2,30 @@ package com.martinsnyder.chatserver
 
 import java.io.File
 
+import cats.effect.concurrent.Ref
 import cats.effect.{ContextShift, Sync}
-import fs2.{Pipe, Stream}
 import fs2.concurrent.{Queue, Topic}
-import org.http4s.{HttpRoutes, StaticFile}
+import fs2.{Pipe, Stream}
 import org.http4s.dsl.Http4sDsl
+import org.http4s.headers.`Content-Type`
 import org.http4s.server.websocket.WebSocketBuilder
 import org.http4s.websocket.WebSocketFrame
 import org.http4s.websocket.WebSocketFrame.{Close, Text}
+import org.http4s.{HttpRoutes, MediaType, StaticFile}
 
 import scala.concurrent.ExecutionContext.global
 
 /*
  * Processes single HTTP requests
  */
-class ChatRoutes[F[_]: Sync: ContextShift](queue: Queue[F, InputMessage], topic: Topic[F, OutputMessage]) extends Http4sDsl[F] {
+class ChatRoutes[F[_]: Sync: ContextShift](chatState: Ref[F, ChatState], queue: Queue[F, InputMessage], topic: Topic[F, OutputMessage]) extends Http4sDsl[F] {
   val routes: HttpRoutes[F] =
     HttpRoutes.of[F] {
       // Static resources
       case request @ GET -> Root  => StaticFile.fromFile(new File("static/index.html"), global, Some(request)).getOrElseF(NotFound())
       case request @ GET -> Root / "chat.js"  => StaticFile.fromFile(new File("static/chat.js"), global, Some(request)).getOrElseF(NotFound())
 
+      // Bind a WebSocket connection for a user
       case GET -> Root / "ws" / userName =>
         // Routes messages from our "topic" to a WebSocket
         val toClient: Stream[F, WebSocketFrame.Text] =

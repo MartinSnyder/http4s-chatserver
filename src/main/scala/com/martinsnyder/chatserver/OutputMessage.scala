@@ -15,13 +15,13 @@ case class WelcomeUser(user: String) extends OutputMessage {
 }
 
 case class SendToUser(user: String, text: String) extends OutputMessage {
-  override def forUser(targetUser: String) = targetUser == user
-  override def toString = text
+  override def forUser(targetUser: String): Boolean = targetUser == user
+  override def toString: String = text
 }
 
 case class SendToUsers(users: Set[String], text: String) extends OutputMessage {
-  override def forUser(targetUser: String) = users.contains(targetUser)
-  override def toString = text
+  override def forUser(targetUser: String): Boolean = users.contains(targetUser)
+  override def toString: String = text
 }
 
 case object KeepAlive extends OutputMessage {
