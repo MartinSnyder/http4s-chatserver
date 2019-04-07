@@ -2,6 +2,7 @@ package com.martinsnyder.chatserver
 
 import scala.util.Try
 import cats.effect._
+import cats.effect.concurrent.Ref
 import cats.implicits._
 import fs2.Stream
 import fs2.concurrent.{Queue, Topic}
@@ -24,6 +25,7 @@ object HelloWorldServer extends IOApp {
 
     for (
       // Synchronization objects must be created at the top-level so they can be shared across the application
+      ref <- Ref.of[IO, ChatState](ChatState());
       queue <- Queue.unbounded[IO, InputMessage];
       topic <- Topic[IO, OutputMessage](SendToUsers(Set.empty, ""));
       exitCode <- {
@@ -36,13 +38,15 @@ object HelloWorldServer extends IOApp {
         val keepAlive = Stream.awakeEvery[IO](30.seconds).map(_ => KeepAlive).through(topic.publish)
 
         // Stream to process items from the queue and publish the results to the topic
-        // Note mapAccumulate below which performs our state manipulation
+        // 1. Dequeue
+        // 2. apply message to state reference
+        // 3. Convert resulting output messages to a stream
+        // 4. Publish output messages to the publish/subscribe topic
         val processingStream =
           queue
             .dequeue
-            .mapAccumulate(ChatState())((prevState, inputMsg) => prevState.process(inputMsg))
-            .map(_._2)             // Strip our state object from the stream and propagate only our messages
-            .flatMap(Stream.emits) // Lift our messages into a stream of their own
+            .flatMap(msg => Stream.eval(ref.modify(_.process(msg))))
+            .flatMap(Stream.emits)
             .through(topic.publish)
 
         // fs2 Streams must be "pulled" to process messages. Drain will perpetually pull our top-level streams

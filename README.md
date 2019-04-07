@@ -15,7 +15,7 @@ This project is a practical example of:
 3. InputMessage routed to Queue
 ### In ChatServer (processingStream)
 4. Queued InputMessages pumped through the current ChatState, producing a "next" state and some number of OutputMessage objects.
-5. "Next" state is preserved for the next iteration
+5. "Next" state is managed by a functional mutable reference (Ref)
 6. OutputMessage objects are routed to a topic (publish/subscribe pattern)
 ### In ChatRoutes (toClient)
 7. OutputMessage objects are received from the topic
@@ -24,7 +24,7 @@ This project is a practical example of:
 
 ## Notes
 ### Concurrency in fs2
-This implementation relies heavily on the concurrency objects Queue and Topic. They are
+This implementation relies heavily on the concurrency objects Ref, Queue and Topic. They are
 used both to move messages between streams and also to control the flow of messages in general.
 
 A more complicated implementation would queue on a per-room basis. That would require per-room
@@ -33,13 +33,9 @@ queues though, and would distract from what this example is trying to demonstrat
 ### Limitations
 The biggest weakness of what I've done here is that *all* traffic is routed through a single queue.
 This neutralizes many of the benefits of http4s. Queueing is necessary in this case because we
-need to sequence our messages in order to conduct the state transformations on ChatState.
-
-Another weakness is that the current state is embedded entirely within "processingStream." This
-prevents other services from accessing that state. For instance, it would be useful to
-implement a monitoring RESTful endpoint that reported on usage metrics, but that is not
-possible without refactoring the state to be more accessible. See the "Ref" link in
-[Further reading](#further-reading) for the technique to address that.
+need to sequence our messages in order to conduct the state transformations on ChatState. A more
+complicated model would use multiple queues (and potentially multiple state objects), perhaps
+along room boundaries.
 
 ### Functional enhancements
 Functional improvements to this application can be implemented by modifying InputMessage,
