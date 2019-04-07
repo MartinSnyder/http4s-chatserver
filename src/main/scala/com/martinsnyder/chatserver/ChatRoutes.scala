@@ -25,6 +25,23 @@ class ChatRoutes[F[_]: Sync: ContextShift](chatState: Ref[F, ChatState], queue: 
       case request @ GET -> Root  => StaticFile.fromFile(new File("static/index.html"), global, Some(request)).getOrElseF(NotFound())
       case request @ GET -> Root / "chat.js"  => StaticFile.fromFile(new File("static/chat.js"), global, Some(request)).getOrElseF(NotFound())
 
+      // Read the current state and format some stats in HTML
+      case GET -> Root / "metrics" =>
+        val outputStream: Stream[F, String] = Stream
+          .eval(chatState.get)
+          .map(state =>
+            s"""
+               |<html>
+                 |<title>Chat Server State</title>
+                 |<body>
+                   |<div>Users: ${state.userRooms.keys.size}</div>
+                   |<div>Rooms: ${state.roomMembers.keys.size}</div>
+                 |</body>
+               |</html>
+              """.stripMargin)
+
+        Ok(outputStream, `Content-Type`(MediaType.text.html))
+
       // Bind a WebSocket connection for a user
       case GET -> Root / "ws" / userName =>
         // Routes messages from our "topic" to a WebSocket
