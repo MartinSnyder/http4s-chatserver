@@ -23,6 +23,6 @@ class ChatStateSpec extends org.specs2.mutable.Specification {
 
   private[this] def noWelcomeOldUser(): MatchResult[Seq[OutputMessage]] = {
     val initState = ChatState().process(EnterRoom("testUser", "room"))._1
-    initState.process(EnterRoom("testUser", "room"))._2 must beEqualTo(Seq())
+    initState.process(EnterRoom("testUser", "room"))._2 must beEqualTo(Seq(SendToUser("testUser", "You are already in that room!")))
   }
 }
