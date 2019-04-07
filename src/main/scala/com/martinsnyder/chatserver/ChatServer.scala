@@ -1,48 +1,57 @@
 package com.martinsnyder.chatserver
 
-import scala.util.Try
 import cats.effect._
+import cats.effect.concurrent.Ref
 import cats.implicits._
 import fs2.Stream
 import fs2.concurrent.{Queue, Topic}
-import org.http4s.HttpRoutes
 import org.http4s.server.Router
 import org.http4s.server.blaze.BlazeServerBuilder
 import org.http4s.syntax.kleisli._
 
+import scala.concurrent.duration._
+import scala.util.Try
+
 /*
- * Top-level executor for our application
+ * Application entry point
  */
 object HelloWorldServer extends IOApp {
   def run(args: List[String]): IO[ExitCode] = {
-    // Read a potential tcp port from the command line
+    // Get a tcp port that might be specified on the command line or in an environment variable
     val httpPort = args
       .headOption
       .orElse(sys.env.get("PORT"))
-      .flatMap(s => Try(s.toInt).toOption)
+      .flatMap(s => Try(s.toInt).toOption) // Ignore any integer parse errors
       .getOrElse(8080)
 
     for (
-      // Synchronization objects must be created at the top-level so they can be shared across the application
+      // Synchronization objects must be created at a level where they can be shared with every object that needs them
       queue <- Queue.unbounded[IO, InputMessage];
       topic <- Topic[IO, OutputMessage](SendToUsers(Set.empty, ""));
-      exitCode <- {
-        import scala.concurrent.duration._
 
+      // There are a few ways to represent state in this model. We choose functional references so that the
+      // state can be referenced in multiple locations. If the state is only needed in a single location
+      // then there are simpler models (like Stream.scan and Stream.mapAccumulate)
+      ref <- Ref.of[IO, ChatState](ChatState());
+
+      // Create and then combine the top-level streams for our application
+      exitCode <- {
         // Stream for HTTP requests
-        val httpStream = ServerStream.stream[IO](httpPort, queue, topic)
+        val httpStream = ServerStream.stream[IO](httpPort, ref, queue, topic)
 
         // Stream to keep alive idle WebSockets
         val keepAlive = Stream.awakeEvery[IO](30.seconds).map(_ => KeepAlive).through(topic.publish)
 
         // Stream to process items from the queue and publish the results to the topic
-        // Note mapAccumulate below which performs our state manipulation
+        // 1. Dequeue
+        // 2. apply message to state reference
+        // 3. Convert resulting output messages to a stream
+        // 4. Publish output messages to the publish/subscribe topic
         val processingStream =
           queue
             .dequeue
-            .mapAccumulate(ChatState())((prevState, inputMsg) => prevState.process(inputMsg))
-            .map(_._2)             // Strip our state object from the stream and propagate only our messages
-            .flatMap(Stream.emits) // Lift our messages into a stream of their own
+            .evalMap(msg => ref.modify(_.process(msg)))
+            .flatMap(Stream.emits)
             .through(topic.publish)
 
         // fs2 Streams must be "pulled" to process messages. Drain will perpetually pull our top-level streams
@@ -58,15 +67,12 @@ object HelloWorldServer extends IOApp {
 }
 
 object ServerStream {
-  def helloWorldRoutes[F[_]: Effect: ContextShift](queue: Queue[F, InputMessage], topic: Topic[F, OutputMessage]): HttpRoutes[F] =
-    new ChatRoutes[F](queue, topic).routes
-
   // Builds a stream for HTTP events processed by our router
-  def stream[F[_]: ConcurrentEffect: Timer: ContextShift](port: Int, queue: Queue[F, InputMessage], topic: Topic[F, OutputMessage]): fs2.Stream[F, ExitCode]=
+  def stream[F[_]: ConcurrentEffect: Timer: ContextShift](port: Int, chatState: Ref[F, ChatState], queue: Queue[F, InputMessage], topic: Topic[F, OutputMessage]): fs2.Stream[F, ExitCode]=
     BlazeServerBuilder[F]
       .bindHttp(port, "0.0.0.0")
       .withHttpApp(Router(
-        "/" -> helloWorldRoutes(queue, topic)
+        "/" -> new ChatRoutes[F](chatState, queue, topic).routes
       ).orNotFound)
       .serve
 }
