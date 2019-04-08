@@ -15,7 +15,7 @@ import scala.util.Try
 /*
  * Application entry point
  */
-object HelloWorldServer extends IOApp {
+object ChatServer extends IOApp {
   def run(args: List[String]): IO[ExitCode] = {
     // Get a tcp port that might be specified on the command line or in an environment variable
     val httpPort = args
