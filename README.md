@@ -8,6 +8,11 @@ This project is a practical example of:
 * Implementing application state using fs2 streams
 * The publish/subscribe pattern
 
+## Presentations
+
+* [A Websocket-based Chat Server in http4s](https://nescala.io/talks.html#http4s-chat-server) ([video](https://www.youtube.com/watch?v=rB5RM-dc4Sg))
+* [Live Coding a Chat Server with WebSockets and http4s](https://www.meetup.com/scala-phase/events/259959798/) ([video](https://www.youtube.com/watch?v=py_V_7gD5WU)) ([code](https://github.com/MartinSnyder/phase-http4s))
+
 ## Messages are processed as follows:
 ### In ChatRoutes (processInput)
 1. Message received via WebSocket
