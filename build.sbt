@@ -1,7 +1,7 @@
 import com.typesafe.sbt.SbtNativePackager.autoImport.NativePackagerHelper._
 
-val Http4sVersion = "0.20.0"
-val Specs2Version = "4.1.0"
+val Http4sVersion = "0.20.4"
+val Specs2Version = "4.6.0"
 val LogbackVersion = "1.2.3"
 
 lazy val root = (project in file("."))
@@ -16,8 +16,8 @@ lazy val root = (project in file("."))
       "org.specs2"     %% "specs2-core"          % Specs2Version % "test",
       "ch.qos.logback"  %  "logback-classic"     % LogbackVersion
     ),
-    addCompilerPlugin("org.spire-math" %% "kind-projector"     % "0.9.6"),
-    addCompilerPlugin("com.olegpy"     %% "better-monadic-for" % "0.2.4"),
+    addCompilerPlugin("org.spire-math" %% "kind-projector"     % "0.9.10"),
+    addCompilerPlugin("com.olegpy"     %% "better-monadic-for" % "0.3.0"),
     mappings in Universal ++= directory(baseDirectory.value / "static"),
     buildInfoKeys := Seq[BuildInfoKey](name, version),
     buildInfoPackage := "com.martinsnyder.chatserver"
