@@ -1,7 +1,10 @@
 language: scala
+scala:
+  2.13.1
 
 cache:
   directories:
+    - $HOME/.cache/coursier
     - $HOME/.ivy2/cache
     - $HOME/.sbt
 
