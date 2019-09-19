@@ -1,9 +1,10 @@
 package com.martinsnyder.chatserver
 
 import java.io.File
+import java.util.concurrent.Executors
 
 import cats.effect.concurrent.Ref
-import cats.effect.{ContextShift, Sync}
+import cats.effect.{Blocker, ContextShift, Sync}
 import fs2.concurrent.{Queue, Topic}
 import fs2.{Pipe, Stream}
 import org.http4s.dsl.Http4sDsl
@@ -13,17 +14,21 @@ import org.http4s.websocket.WebSocketFrame
 import org.http4s.websocket.WebSocketFrame.{Close, Text}
 import org.http4s.{HttpRoutes, MediaType, StaticFile}
 
-import scala.concurrent.ExecutionContext.global
-
 /*
  * Processes single HTTP requests
  */
 class ChatRoutes[F[_]: Sync: ContextShift](chatState: Ref[F, ChatState], queue: Queue[F, InputMessage], topic: Topic[F, OutputMessage]) extends Http4sDsl[F] {
+  private val blocker = {
+    val NumBlockingThreadsForFilesystem = 4
+    val blockingPool = Executors.newFixedThreadPool(NumBlockingThreadsForFilesystem)
+    Blocker.liftExecutorService(blockingPool)
+  }
+
   val routes: HttpRoutes[F] =
     HttpRoutes.of[F] {
       // Static resources
-      case request @ GET -> Root  => StaticFile.fromFile(new File("static/index.html"), global, Some(request)).getOrElseF(NotFound())
-      case request @ GET -> Root / "chat.js"  => StaticFile.fromFile(new File("static/chat.js"), global, Some(request)).getOrElseF(NotFound())
+      case request @ GET -> Root  => StaticFile.fromFile(new File("static/index.html"), blocker, Some(request)).getOrElseF(NotFound())
+      case request @ GET -> Root / "chat.js"  => StaticFile.fromFile(new File("static/chat.js"), blocker, Some(request)).getOrElseF(NotFound())
 
       // Read the current state and format some stats in HTML
       case GET -> Root / "metrics" =>
