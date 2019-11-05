@@ -9,7 +9,7 @@ var chat = {}; // Namespace
 
 	// Global variables
 	chat.user = null;
-	chat.ws = null
+	chat.ws = null;
 
 	chat.initPage = function () {
 		document.getElementById(chat.ENTRY_ID).focus();
@@ -19,7 +19,7 @@ var chat = {}; // Namespace
 	};
 
     chat.connect = function() {
-        var url = new URL('/ws/' + encodeURI(chat.user), window.location.href);
+        var url = new URL('http://localhost:8080/ws/' + encodeURI(chat.user), window.location.href);
         url.protocol = url.protocol.replace('http', 'ws');
 
         chat.ws = new WebSocket(url.href);
