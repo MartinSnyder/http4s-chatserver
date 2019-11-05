@@ -29,14 +29,14 @@ object InputMessage {
   // Parses a string into a command
   def parse(user: String, text: String): InputMessage =
     splitFirstTwoWords(text) match {
-      case ("/help", _, _)                    => Help(user)
-      case ("/room", "", "")                  => EnterRoom(user, DefaultRoomName)
-      case ("/room", room, "")                => EnterRoom(user, room.toLowerCase)
-      case ("/room", _, _)                    => InvalidInput(user, "/room takes a single, optional argument")
-      case ("/rooms", _, _)                   => ListRooms(user)
-      case ("/members", _, _)                 => ListMembers(user)
-      case (cmd, _, _) if cmd.startsWith("/") => InvalidInput(user, s"unknown command - $cmd")
-      case _                                  => Chat(user, text)
+      case ("/help", _, _)     => Help(user)
+      case ("/room", "", "")   => EnterRoom(user, DefaultRoomName)
+      case ("/room", room, "") => EnterRoom(user, room.toLowerCase)
+      case ("/room", _, _)     => InvalidInput(user, "/room takes a single, optional argument")
+      case ("/rooms", _, _)    => ListRooms(user)
+      case ("/members", _, _)  => ListMembers(user)
+      case (s"/$cmd", _, _)    => InvalidInput(user, s"unknown command - $cmd")
+      case _                   => Chat(user, text)
     }
 
   private def splitFirstWord(text: String): (String, String) = {

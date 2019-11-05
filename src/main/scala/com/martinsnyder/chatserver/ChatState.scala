@@ -5,7 +5,11 @@ object ChatState {
   def apply(): ChatState = ChatState(Map.empty, Map.empty)
 }
 
-case class ChatState(userRooms: Map[String, String], roomMembers: Map[String, Set[String]]) {
+case class ChatState(
+    userRooms: Map[String, String],
+    roomMembers: Map[String, Set[String]]
+) {
+
   def process(msg: InputMessage): (ChatState, Seq[OutputMessage]) = msg match {
     case Help(user) =>
       (this, Seq(SendToUser(user, InputMessage.HelpText)))

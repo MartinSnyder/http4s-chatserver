@@ -24,17 +24,23 @@ class ChatRoutes[F[_]: Sync: ContextShift](
 ) extends Http4sDsl[F] {
 
   private val blocker = {
-    val NumBlockingThreadsForFilesystem = 4
-    val blockingPool                    = Executors.newFixedThreadPool(NumBlockingThreadsForFilesystem)
+    val numBlockingThreadsForFilesystem = 4
+    val blockingPool                    = Executors.newFixedThreadPool(numBlockingThreadsForFilesystem)
     Blocker.liftExecutorService(blockingPool)
   }
 
   val routes: HttpRoutes[F] =
     HttpRoutes.of[F] {
       // Static resources
-      case request @ GET -> Root => StaticFile.fromFile(new File("static/index.html"), blocker, Some(request)).getOrElseF(NotFound())
+      case request @ GET -> Root =>
+        StaticFile
+          .fromFile(new File("static/index.html"), blocker, Some(request))
+          .getOrElseF(NotFound())
+
       case request @ GET -> Root / "chat.js" =>
-        StaticFile.fromFile(new File("static/chat.js"), blocker, Some(request)).getOrElseF(NotFound())
+        StaticFile
+          .fromFile(new File("static/chat.js"), blocker, Some(request))
+          .getOrElseF(NotFound())
 
       // Read the current state and format some stats in HTML
       case GET -> Root / "metrics" =>
@@ -69,12 +75,12 @@ class ChatRoutes[F[_]: Sync: ContextShift](
           // Stream that transforms between raw text from the client and parsed InputMessage objects
           val parsedWebSocketInput: Stream[F, InputMessage] =
             wsfStream
-              .collect({
+              .collect {
                 case Text(text, _) => InputMessage.parse(userName, text)
 
                 // Convert the terminal WebSocket event to a User disconnect message
                 case Close(_) => Disconnect(userName)
-              })
+              }
 
           // Create a stream that has all of the user input sandwiched between the entry and disconnect messages
           (entryStream ++ parsedWebSocketInput).through(queue.enqueue)
