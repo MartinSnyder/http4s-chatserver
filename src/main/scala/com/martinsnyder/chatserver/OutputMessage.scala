@@ -6,25 +6,25 @@ package com.martinsnyder.chatserver
 trait OutputMessage {
   // To support stream filtering
   def forUser(targetUser: String): Boolean
-  override def toString: String
+  def toString: String
 }
 
 case class WelcomeUser(user: String) extends OutputMessage {
   override def forUser(targetUser: String): Boolean = targetUser == user
-  override def toString = s"Welcome to ChatServer version ${BuildInfo.version} - an example for http4s"
+  override def toString                             = s"Welcome to ChatServer version ${BuildInfo.version} - an example for http4s"
 }
 
 case class SendToUser(user: String, text: String) extends OutputMessage {
   override def forUser(targetUser: String): Boolean = targetUser == user
-  override def toString: String = text
+  override def toString: String                     = text
 }
 
 case class SendToUsers(users: Set[String], text: String) extends OutputMessage {
   override def forUser(targetUser: String): Boolean = users.contains(targetUser)
-  override def toString: String = text
+  override def toString: String                     = text
 }
 
 case object KeepAlive extends OutputMessage {
   override def forUser(targetUser: String) = true
-  override def toString = ""
+  override def toString                    = ""
 }

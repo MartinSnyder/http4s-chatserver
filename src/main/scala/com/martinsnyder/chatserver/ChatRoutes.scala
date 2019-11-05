@@ -17,25 +17,30 @@ import org.http4s.{HttpRoutes, MediaType, StaticFile}
 /*
  * Processes single HTTP requests
  */
-class ChatRoutes[F[_]: Sync: ContextShift](chatState: Ref[F, ChatState], queue: Queue[F, InputMessage], topic: Topic[F, OutputMessage]) extends Http4sDsl[F] {
+class ChatRoutes[F[_]: Sync: ContextShift](
+    chatState: Ref[F, ChatState],
+    queue: Queue[F, InputMessage],
+    topic: Topic[F, OutputMessage]
+) extends Http4sDsl[F] {
+
   private val blocker = {
     val NumBlockingThreadsForFilesystem = 4
-    val blockingPool = Executors.newFixedThreadPool(NumBlockingThreadsForFilesystem)
+    val blockingPool                    = Executors.newFixedThreadPool(NumBlockingThreadsForFilesystem)
     Blocker.liftExecutorService(blockingPool)
   }
 
   val routes: HttpRoutes[F] =
     HttpRoutes.of[F] {
       // Static resources
-      case request @ GET -> Root  => StaticFile.fromFile(new File("static/index.html"), blocker, Some(request)).getOrElseF(NotFound())
-      case request @ GET -> Root / "chat.js"  => StaticFile.fromFile(new File("static/chat.js"), blocker, Some(request)).getOrElseF(NotFound())
+      case request @ GET -> Root => StaticFile.fromFile(new File("static/index.html"), blocker, Some(request)).getOrElseF(NotFound())
+      case request @ GET -> Root / "chat.js" =>
+        StaticFile.fromFile(new File("static/chat.js"), blocker, Some(request)).getOrElseF(NotFound())
 
       // Read the current state and format some stats in HTML
       case GET -> Root / "metrics" =>
         val outputStream: Stream[F, String] = Stream
           .eval(chatState.get)
-          .map(state =>
-            s"""
+          .map(state => s"""
                |<html>
                  |<title>Chat Server State</title>
                  |<body>
