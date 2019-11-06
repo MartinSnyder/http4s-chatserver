@@ -9,7 +9,7 @@ var chat = {}; // Namespace
 
 	// Global variables
 	chat.user = null;
-	chat.ws = null
+	chat.ws = null;
 
 	chat.initPage = function () {
 		document.getElementById(chat.ENTRY_ID).focus();
