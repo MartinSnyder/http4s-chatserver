@@ -5,10 +5,10 @@ import org.specs2.matcher.MatchResult
 class ChatStateSpec extends org.specs2.mutable.Specification {
   "ChatState" >> {
     "initializes empty" >> {
-      noUsers && noRooms
+      noUsers() && noRooms()
     }
     "welcomes new users (only)" >> {
-      welcomeNewUser && noWelcomeOldUser
+      welcomeNewUser() && noWelcomeOldUser()
     }
   }
 
